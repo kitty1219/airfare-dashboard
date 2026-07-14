@@ -2,6 +2,11 @@
 
 公开访问版航空票价研究看板。网站使用脱敏聚合数据，不连接私人数据库，也不包含爬虫、Cookie、账号、原始采集记录或运行日志。
 
+## 在线访问
+
+- https://airfare.yingzhii.xyz/
+- https://airfare-dashboard.vercel.app/
+
 ## 在线功能
 
 - 自定义出行开始、结束日期
