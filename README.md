@@ -25,6 +25,8 @@
 ## 本地预览
 
 ```powershell
+npm run build
+cd dist
 python -m http.server 4174 --bind 127.0.0.1
 ```
 
@@ -39,4 +41,3 @@ python scripts/export_public_data.py --db "D:\path\to\flight_prices.db"
 ```
 
 重新提交生成的 `public/data/dashboard_data.json` 后，Vercel会自动部署新数据。
-
