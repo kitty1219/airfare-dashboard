@@ -1,4 +1,4 @@
-import { cpSync, copyFileSync, mkdirSync, rmSync } from "node:fs";
+import { copyFileSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,7 +8,18 @@ const dist = resolve(root, "dist");
 rmSync(dist, { recursive: true, force: true });
 mkdirSync(dist, { recursive: true });
 copyFileSync(resolve(root, "index.html"), resolve(dist, "index.html"));
-cpSync(resolve(root, "src"), resolve(dist, "src"), { recursive: true });
-cpSync(resolve(root, "public"), resolve(dist, "public"), { recursive: true });
+
+function copyDirectory(source, target) {
+  mkdirSync(target, { recursive: true });
+  for (const entry of readdirSync(source, { withFileTypes: true })) {
+    const from = resolve(source, entry.name);
+    const to = resolve(target, entry.name);
+    if (entry.isDirectory()) copyDirectory(from, to);
+    else if (entry.isFile()) copyFileSync(from, to);
+  }
+}
+
+copyDirectory(resolve(root, "src"), resolve(dist, "src"));
+copyDirectory(resolve(root, "public"), resolve(dist, "public"));
 
 console.log("Static dashboard built in dist/");
