@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="航空票价动态监测与分析看板" />
+    <title>航空票价动态监测与分析看板</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">航价</div>
+          <div>
+            <strong>航空票价监测</strong>
+            <span>Airfare Intelligence</span>
+          </div>
+        </div>
+        <nav class="side-nav" aria-label="看板导航">
+          <a class="nav-link active" href="#overview"><span>01</span>监测概览</a>
+          <a class="nav-link" href="#trend"><span>02</span>出行日价格</a>
+          <a class="nav-link" href="#tracker"><span>03</span>出行日追踪</a>
+          <a class="nav-link" href="#method"><span>04</span>口径说明</a>
+        </nav>
+        <div class="sidebar-status">
+          <span class="status-dot"></span>
+          <div><strong id="source-status">正在连接数据</strong><span id="source-detail">只读聚合接口</span></div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="page-header">
+          <div>
+            <p class="eyebrow">AIRFARE MONITORING & ANALYTICS</p>
+            <h1>航空票价动态监测与分析看板</h1>
+            <p class="page-intro">按出行日期观察航空票价，统一切换统计指标与购票提前期，避免不同时间口径交叉混用。</p>
+          </div>
+          <div class="header-meta"><span>数据更新至</span><strong id="last-updated">—</strong></div>
+        </header>
+
+        <section class="control-bar" aria-label="全局筛选">
+          <div class="control-group">
+            <label for="route-select">航线</label>
+            <select id="route-select" disabled><option>加载中…</option></select>
+          </div>
+          <div class="control-group date-range-control">
+            <label for="start-date">出行日期范围</label>
+            <div class="date-range-inputs">
+              <input id="start-date" type="date" disabled aria-label="出行开始日期" />
+              <span>至</span>
+              <input id="end-date" type="date" disabled aria-label="出行结束日期" />
+            </div>
+          </div>
+          <div class="control-group">
+            <label for="metric-select">统计指标</label>
+            <select id="metric-select" disabled><option>中位数</option></select>
+          </div>
+          <div class="control-group">
+            <label for="lead-select">购票提前期口径</label>
+            <select id="lead-select" disabled><option>全部提前期平均</option></select>
+          </div>
+          <button class="refresh-button" id="refresh-button" type="button" disabled><span aria-hidden="true">↻</span> 刷新</button>
+        </section>
+
+        <div id="error-banner" class="error-banner" role="alert" hidden></div>
+        <div id="loading" class="loading-state"><span class="loader"></span>正在读取监测数据…</div>
+
+        <div id="dashboard" hidden>
+          <section id="overview" class="dashboard-section">
+            <div class="section-heading">
+              <div><p class="section-index">01 · MONITORING OVERVIEW</p><h2>监测概览</h2></div>
+              <p id="period-label">—</p>
+            </div>
+            <div class="kpi-grid" id="kpi-grid"></div>
+            <article class="decision-card">
+              <div class="decision-icon" aria-hidden="true">析</div>
+              <div><span>当前数据概览</span><p id="decision-text">—</p></div>
+            </article>
+            <div class="subsection-heading">
+              <div><h3>分航线价格概览</h3><p id="route-card-caption">使用当前统计指标和购票提前期口径</p></div>
+            </div>
+            <div class="route-grid" id="route-grid"></div>
+          </section>
+
+          <section id="trend" class="dashboard-section">
+            <div class="section-heading">
+              <div><p class="section-index">02 · TRAVEL-DATE PRICE</p><h2>按出行日的票价变化</h2></div>
+              <p>横轴始终为出行日期，顶部四项筛选同步作用于图表和明细</p>
+            </div>
+            <article class="panel chart-panel wide">
+              <div class="panel-header">
+                <div><h3 id="trend-title">出行日票价走势</h3><p id="trend-subtitle">—</p></div>
+                <div class="legend" id="trend-legend"></div>
+              </div>
+              <div id="trend-chart" class="chart airfare-chart" role="img" aria-label="按出行日统计的航空票价走势"></div>
+            </article>
+
+            <article class="panel detail-panel">
+              <div class="panel-header">
+                <div><h3>出行日数据明细</h3><p>按出行日期倒序展示，可核对图中每个点的数值与样本量</p></div>
+                <span class="detail-count" id="detail-count">—</span>
+              </div>
+              <div class="table-wrap detail-table">
+                <table>
+                  <thead><tr><th>出行日期</th><th>航线</th><th id="metric-column">统计值</th><th>报价样本</th><th>覆盖提前期</th></tr></thead>
+                  <tbody id="detail-table"></tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+
+          <section id="tracker" class="dashboard-section">
+            <div class="section-heading">
+              <div><p class="section-index">03 · TRAVEL-DATE TRACKER</p><h2>指定出行日追踪</h2></div>
+              <p>用于回答“某一天的机票在预售期内如何变价”</p>
+            </div>
+            <article class="panel tracker-panel">
+              <div class="tracker-toolbar">
+                <div><h3>出行日价格轨迹</h3><p id="tracker-help">请先在顶部选择一条具体航线</p></div>
+                <div class="control-group compact">
+                  <label for="flight-date-select">出行日期</label>
+                  <select id="flight-date-select" disabled><option>—</option></select>
+                </div>
+              </div>
+              <div id="tracker-empty" class="empty-state">选择具体航线后，可查看指定出行日的历史报价轨迹。</div>
+              <div id="tracker-content" hidden>
+                <div id="tracker-chart" class="chart tracker-chart" role="img" aria-label="指定出行日历史价格轨迹"></div>
+                <div class="table-wrap compact-table">
+                  <table>
+                    <thead><tr><th>航线</th><th>航班</th><th>航空公司</th><th>起飞时间</th><th>监测最低价</th><th>监测中位价</th><th>监测最高价</th><th>样本数</th></tr></thead>
+                    <tbody id="tracker-table"></tbody>
+                  </table>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <section id="method" class="dashboard-section method-section">
+            <div class="section-heading">
+              <div><p class="section-index">04 · DEFINITIONS & QUALITY</p><h2>统计口径与数据质量</h2></div>
+              <p>把计算方式直接写在界面上，确保不同筛选结果可以解释</p>
+            </div>
+            <div class="method-grid" id="method-grid"></div>
+            <article class="panel data-range-panel">
+              <div><span>采集日期范围</span><strong id="scrape-range">—</strong></div>
+              <div><span>当前出行日期范围</span><strong id="flight-range">—</strong></div>
+              <div><span>当前报价样本</span><strong id="sample-count">—</strong></div>
+              <div><span>价格数据口径</span><strong id="basis-label">—</strong></div>
+            </article>
+            <article class="panel coverage-panel">
+              <div class="panel-header">
+                <div><h3>监测日批次完整度</h3><p>同步使用顶部日期范围；计划每日7个采集批次，深色为完整，浅色为不完整</p></div>
+                <div class="coverage-summary" id="coverage-summary">—</div>
+              </div>
+              <div class="coverage-strip" id="coverage-strip"></div>
+            </article>
+          </section>
+
+          <footer><span>航空票价动态监测与分析看板 · 研究原型</span><span>数据仅用于科研分析，不构成购票或定价建议</span></footer>
+        </div>
+      </main>
+    </div>
+    <script src="./src/data-provider.js"></script>
+    <script src="./src/app.js"></script>
+  </body>
+</html>

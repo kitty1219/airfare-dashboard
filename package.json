@@ -1,0 +1,9 @@
+{
+  "name": "airfare-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Public privacy-safe airfare monitoring dashboard",
+  "scripts": {
+    "start": "python -m http.server 4174 --bind 127.0.0.1"
+  }
+}
