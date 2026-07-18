@@ -227,28 +227,7 @@ function renderDetail(data) {
   $("#detail-table").innerHTML=rows.map((row)=>`<tr><td><strong>${row.flightDate}</strong></td><td>${escapeHtml(row.route)}</td><td><strong>${money(row.value)}</strong></td><td>${number(row.sampleCount)}条</td><td>${state.lead==="avg"?`${row.leadDaysCovered}个提前期`:data.meta.leadLabel}</td></tr>`).join("");
 }
 
-function metricExplanation(metric) {
-  return {
-    min:"取同一出行日、同一航线、对应提前期报价中的最小值。",
-    max:"取同一出行日、同一航线、对应提前期报价中的最大值。",
-    mean:"计算同一出行日、同一航线、对应提前期全部报价的算术平均。",
-    median:"取报价排序后的中间位置，降低少量极端价格的影响。",
-    q25:"取报价分布的第25百分位，用于观察相对低价水平。",
-    q75:"取报价分布的第75百分位，用于观察相对高价水平。",
-  }[metric];
-}
-
 function renderMethod(data) {
-  const leadText=state.lead==="avg"
-    ? `先对每个提前期分别计算“${data.meta.metricLabel}”，再对各提前期结果取算术平均，避免某个提前期因报价数量较多而权重过高。`
-    : `仅使用距出行日${state.lead}天时采集到的报价，计算“${data.meta.metricLabel}”。`;
-  const cards=[
-    ["PRICE","价格口径",data.meta.priceBasis+"。"],
-    ["METRIC",`统计指标：${data.meta.metricLabel}`,metricExplanation(state.metric)],
-    ["LEAD",`提前期：${data.meta.leadLabel}`,leadText],
-    ["DATE","出行日期口径","主图横轴为航班实际出行日期；日期范围按当前提前期口径下有有效报价的出行日倒序选取。"],
-  ];
-  $("#method-grid").innerHTML=cards.map(([tag,title,text])=>`<article class="method-card"><span>${tag}</span><h3>${title}</h3><p>${text}</p></article>`).join("");
   const scrape=data.meta.scrapeDateRange, flight=data.meta.flightDateRange;
   $("#scrape-range").textContent=scrape?`${scrape[0]} 至 ${scrape[1]}`:"—";
   $("#flight-range").textContent=flight?`${flight[0]} 至 ${flight[1]}`:"—";
